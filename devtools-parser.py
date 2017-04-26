@@ -35,20 +35,25 @@ class DevTools(object):
         self.optimization = options.optimization
         self.cached = options.cached
         self.out_file = options.out
-        self.result = {'page_data': {}, 'requests': []}
+        self.result = {'pageData': {}, 'requests': []}
 
     def process(self):
         """Main entry point for processing"""
+        logging.debug("Processing raw devtools events")
         raw_requests, raw_page_data = self.extract_net_requests()
         if len(raw_requests) and len(raw_page_data):
+            logging.debug("Extracting requests and page data")
             self.process_requests(raw_requests, raw_page_data)
+            logging.debug("Adding netlog requests")
             self.process_netlog_requests()
+            logging.debug("Adding optimization results")
             self.process_optimization_results()
+            logging.debug("Writing result")
             self.write()
 
     def write(self):
         """Write out the resulting json data"""
-        if self.out_file is not None and len(self.result['page_data']) and \
+        if self.out_file is not None and len(self.result['pageData']) and \
             len(self.result['requests']):
             try:
                 _, ext = os.path.splitext(self.out_file)
@@ -259,8 +264,8 @@ class DevTools(object):
 
     def process_requests(self, raw_requests, raw_page_data):
         """Process the raw requests into high-level requests"""
-        self.result = {'page_data': {}, 'requests': []}
-        page_data = self.result['page_data']
+        self.result = {'pageData': {}, 'requests': []}
+        page_data = self.result['pageData']
         requests = self.result['requests']
         page_data['loadTime'] = 0
         page_data['docTime'] = 0
@@ -538,7 +543,7 @@ class DevTools(object):
 
     def process_netlog_requests(self):
         """Merge the data from the netlog requests file"""
-        page_data = self.result['page_data']
+        page_data = self.result['pageData']
         requests = self.result['requests']
         mapping = {'dns_start': 'dns_start',
                    'dns_end': 'dns_end',
@@ -681,7 +686,7 @@ class DevTools(object):
 
     def process_optimization_results(self):
         """Merge the data from the optimization checks file"""
-        page_data = self.result['page_data']
+        page_data = self.result['pageData']
         requests = self.result['requests']
         if self.optimization is not None and os.path.isfile(self.optimization):
             _, ext = os.path.splitext(self.optimization)
@@ -816,7 +821,7 @@ def main():
     devtools.process()
     end = time.time()
     elapsed = end - start
-    logging.debug("Elapsed Time: %0.3f", elapsed)
+    logging.debug("Devtools processing time: %0.3f", elapsed)
 
 if __name__ == '__main__':
     #  import cProfile
